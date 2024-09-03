@@ -250,8 +250,8 @@ func (engine *Engine) loop() {
 			}
 		}
 
-		blockHash := engine.reduction(round, block, extraDelayForReductionOne)
-		blockHash, cert, err := engine.binaryBa(blockHash)
+		blockHash := engine.reduction(round, block, emptyBlock, extraDelayForReductionOne)
+		blockHash, cert, err := engine.binaryBa(blockHash, emptyBlock)
 		if err != nil {
 			engine.log.Info("Binary Ba is failed", "err", err)
 
@@ -373,7 +373,7 @@ func (engine *Engine) waitForBlock(proposerPubKey []byte) (*types.Block, time.Du
 	return block, notUsedDelay
 }
 
-func (engine *Engine) reduction(round uint64, block *types.Block, extraDelayForReductionOne time.Duration) common.Hash {
+func (engine *Engine) reduction(round uint64, block *types.Block, emptyBlock *types.Block, extraDelayForReductionOne time.Duration) common.Hash {
 	engine.process = "Reduction started"
 	engine.log.Info("Reduction started", "block", block.Hash().Hex())
 
@@ -383,7 +383,7 @@ func (engine *Engine) reduction(round uint64, block *types.Block, extraDelayForR
 	hash, _, err := engine.countVotes(round, types.ReductionOne, block.Header.ParentHash(), engine.chain.GetCommitteeVotesThreshold(engine.appState.ValidatorsCache, false), engine.cfg.Consensus.ReductionOneDelay+extraDelayForReductionOne)
 	engine.process = fmt.Sprintf("Reduction %v votes counted", types.ReductionOne)
 
-	emptyBlock := engine.chain.GenerateEmptyBlock()
+	// emptyBlock := engine.chain.GenerateEmptyBlock()
 
 	if err != nil {
 		hash = emptyBlock.Hash()
@@ -405,10 +405,10 @@ func (engine *Engine) completeBA() {
 	engine.nextBlockDetector.complete()
 }
 
-func (engine *Engine) binaryBa(blockHash common.Hash) (common.Hash, *types.FullBlockCert, error) {
+func (engine *Engine) binaryBa(blockHash common.Hash, emptyBlock *types.Block) (common.Hash, *types.FullBlockCert, error) {
 	defer engine.completeBA()
 	engine.log.Info("binaryBa started", "block", blockHash.Hex())
-	emptyBlock := engine.chain.GenerateEmptyBlock()
+	// emptyBlock := engine.chain.GenerateEmptyBlock()
 
 	emptyBlockHash := emptyBlock.Hash()
 
